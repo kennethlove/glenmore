@@ -62,6 +62,12 @@ GlenMore.UserTabs = Marionette.CollectionView.extend({
     className: 'nav nav-tabs'
 });
 
+GlenMore.AddUserTabView = Marionette.ItemView.extend({
+    template: '#add_user_tab_template',
+    tagName: 'li',
+    className: 'add-user'
+});
+
 GlenMore.FormView = Marionette.ItemView.extend({
     template: '#form_template',
     className: 'tab-pane',
@@ -79,10 +85,16 @@ GlenMore.FormView = Marionette.ItemView.extend({
     }
 });
 
+GlenMore.AddUserFormView = Marionette.ItemView.extend({
+    template: '#add_user_form_template',
+    className: 'tab-pane',
+    id: 'add-user'
+});
+
 GlenMore.UserForms = Marionette.CollectionView.extend({
     itemView: GlenMore.FormView,
     tagName: 'div',
-    className: 'tab-content'
+    className: 'tab-content',
 });
 
 GlenMore.on('initialize:after', function() {
@@ -102,9 +114,25 @@ GlenMore.on('initialize:after', function() {
     var formsView = new GlenMore.UserForms({
         collection: users
     });
-    var williamFormView = new GlenMore.FormView({
-        model: kenneth
+
+    tabsView.on('collection:rendered', function(el) {
+        options = {}
+        if (el.collection.length === 0) {
+            options['className'] = (new GlenMore.AddUserTabView()).className + ' active';
+        }
+        var add_user = new GlenMore.AddUserTabView(options);
+        el.$el.append(add_user.render().$el);
     });
+
+    formsView.on('collection:rendered', function(el) {
+        options = {}
+        if (el.collection.length === 0) {
+            options['className'] = (new GlenMore.AddUserFormView()).className + ' active';
+        }
+        var add_user = new GlenMore.AddUserFormView(options);
+        el.$el.append(add_user.render().$el);
+    });
+
     GlenMore.tabs.show(tabsView);
     GlenMore.forms.show(formsView);
 });
