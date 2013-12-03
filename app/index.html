@@ -1,0 +1,142 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Glen More Scorer</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+        <!-- build:css(.tmp) styles/main.css -->
+        <link rel="stylesheet" href="styles/main.css">
+        <!-- endbuild -->
+        <!-- build:js scripts/vendor/modernizr.js -->
+        <script src="bower_components/modernizr/modernizr.js"></script>
+        <!-- endbuild -->
+    </head>
+    <body>
+        <!--[if lt IE 10]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+
+        <div class="container">
+            <div class="header">
+                <h3>Glen More Scorer</h3>
+            </div>
+
+            <div class="row" id="main">
+
+                <div id="tabs"></div>
+                <div id="forms"></div>
+
+            </div>
+
+            <div class="footer">
+                <p>♥ from the Yeoman team</p>
+            </div>
+
+        </div>
+
+
+        <script type="text/template" id="add_user_tab_template">
+            <li class="active add-user"><a data-toggle="tab" href="#user-add"><i class="glyphicon glyphicon-plus"></i> Add Player</a></li>
+        </script>
+
+        <script type="text/template" id="add_user_form_template">
+            <div class="tab-pane" id="user-add">
+                <form role="form" class="form-inline">
+                    <div class="form-group">
+                        <label for="name" class="sr-only">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Name">
+                    </div>
+                    <button type="submit" class="btn btn-default">Save</button>
+                </form>
+            </div>
+        </script>
+
+        <script type="text/template" id="tab_template">
+            <a data-toggle="tab" href="#user-<%= slug %>"><i class="glyphicon glyphicon-user"></i> <%= name %></a>
+        </script>
+
+        <script type="text/template" id="form_template">
+            <div class="table-responsive">
+                <table class="scores table table-condensed table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="column">Round</th>
+                            <th scope="column">Whiskey Barrels</th>
+                            <th scope="column">Tams/Chieftans</th>
+                            <th scope="column">Special Locations</th>
+                            <th scope="column">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">1</th>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <form role="form" class="form-inline score-entry">
+                <fieldset>
+                    <legend>Round 2</legend>
+                    <div class="form-group">
+                        <label for="user-<%= slug %>-whiskey" class="sr-only">Num. Whiskey Barrels</label>
+                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-whiskey" name="user-<%= slug %>-whiskey" placeholder="Whiskey Barrels">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-<%= slug %>-tams" class="sr-only">Num. Tams/Chieftans</label>
+                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-tams" name="user-<%= slug %>-tams" placeholder="Tams/Chieftans">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-<%= slug %>-locations" class="sr-only">Num. Special Locations</label>
+                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-locations" name="user-<%= slug %>-locations" placeholder="Special Locations">
+                    </div>
+                    <input type="hidden" name="round">
+                    <button type="submit" class="btn btn-default">Save</button>
+                </fieldset>
+            </form>
+        </script>
+
+
+        <!-- build:js scripts/vendor.js -->
+        <!-- bower:js -->
+        <script src="bower_components/jquery/jquery.js"></script>
+        <script src="bower_components/sass-bootstrap/dist/js/bootstrap.js"></script>
+        <script src="bower_components/underscore/underscore.js"></script>
+        <script src="bower_components/backbone/backbone.js"></script>
+        <script src="bower_components/backbone.wreqr/lib/backbone.wreqr.js"></script>
+        <script src="bower_components/backbone.babysitter/lib/backbone.babysitter.js"></script>
+        <script src="bower_components/backbone.marionette/lib/backbone.marionette.js"></script>
+        <script src="bower_components/backbone.localStorage/backbone.localStorage.js"></script>
+        <!-- endbower -->
+        <!-- endbuild -->
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X');ga('send','pageview');
+        </script>
+
+        <!-- build:js scripts/main.js -->
+        <script src="scripts/main.js"></script>
+        <!-- endbuild -->
+
+        <!-- build:js scripts/plugins.js -->
+        <script src="bower_components/sass-bootstrap/js/transition.js"></script>
+        <script src="bower_components/sass-bootstrap/js/tab.js"></script>
+        <!-- endbuild -->
+</body>
+</html>
