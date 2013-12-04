@@ -90,9 +90,11 @@ GlenMore.FormView = Marionette.ItemView.extend({
         'click .remove-user': 'removeUser'
     },
     saveRoundForm: function(e) {
-        e.stopPropagation();
         e.preventDefault();
-        alert(this.model.escape('name'));
+        var data = Backbone.Syphon.serialize(this);
+        data['model'] = this.model;
+        this.model.trigger('round_form:submit', data);
+        $(e.target).parent('form').find(':submit').attr('disabled');
     },
     removeUser: function(e) {
         e.preventDefault();
@@ -103,9 +105,8 @@ GlenMore.FormView = Marionette.ItemView.extend({
         var context = {
             name: serialized_model.name,
             slug: serialized_model.slug,
-            round: _.last(serialized_model.rounds.models).get('number')
+            round: _.last(serialized_model.rounds)
         }
-        console.log(context)
 //         return _.template(template_html, context, {variable: 'args'});
         return _.template(template_html, context);
     }
@@ -143,6 +144,12 @@ GlenMore.on('initialize:after', function() {
     users.on('user:remove', function(user) {
         deletedUser = this.get({'id': user.get('id')});
         deletedUser.destroy();
+    });
+    users.on('round_form:submit', function(data) {
+        var user = this.get(data.model.get('id'));
+        var round = _.last(user.get('rounds'));
+        round.set(data);
+        console.log(round);
     });
 
     var tabsView = new GlenMore.UserTabs({

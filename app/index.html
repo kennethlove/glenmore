@@ -87,20 +87,20 @@
             </div>
             <form role="form" class="form-inline score-entry">
                 <fieldset>
-                    <legend>Round: <%= round %></legend>
+                    <legend>Round: <%= round.number %></legend>
                     <div class="form-group">
                         <label for="user-<%= slug %>-whiskey" class="sr-only">Num. Whiskey Barrels</label>
-                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-whiskey" name="user-<%= slug %>-whiskey" placeholder="Whiskey Barrels">
+                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-whiskey" name="whiskey" placeholder="Whiskey Barrels">
                     </div>
                     <div class="form-group">
                         <label for="user-<%= slug %>-tams" class="sr-only">Num. Tams/Chieftans</label>
-                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-tams" name="user-<%= slug %>-tams" placeholder="Tams/Chieftans">
+                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-tams" name="tams" placeholder="Tams/Chieftans">
                     </div>
                     <div class="form-group">
                         <label for="user-<%= slug %>-locations" class="sr-only">Num. Special Locations</label>
-                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-locations" name="user-<%= slug %>-locations" placeholder="Special Locations">
+                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-locations" name="locations" placeholder="Special Locations">
                     </div>
-                    <input type="hidden" name="round">
+                    <input type="hidden" name="round" value="<%= round.number %>">
                     <button type="submit" class="btn btn-default save-user">Save</button>
                 </fieldset>
             </form>
