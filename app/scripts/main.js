@@ -8,7 +8,7 @@
  *
 */
 
-var GlenMore= new Marionette.Application();
+var GlenMore = new Marionette.Application();
 
 GlenMore.addRegions({
     mainRegion: '#main',
@@ -17,36 +17,34 @@ GlenMore.addRegions({
     newuser: '#new_user'
 });
 
+GlenMore.Round = Backbone.Model.extend({
+    defaults: {
+        number: 1,
+        whiskey: 0,
+        tams: 0,
+        locations: 0
+    }
+});
+
+GlenMore.FinalScoring = Backbone.Model.extend({
+    defaults: {
+        special: 0,
+        coins: 0,
+        tiles: 0
+    }
+});
+
+GlenMore.Rounds = Backbone.Collection.extend({
+    model: GlenMore.Round
+});
+
 GlenMore.User = Backbone.Model.extend({
     defaults: {
         id: 0,
         name: 'William Wallace',
         slug: 'william-wallace',
-        scores: {
-            rounds: [
-                {
-                    whiskey: 0,
-                    tams: 0,
-                    locations: 0
-                },
-                {
-                    whiskey: 0,
-                    tams: 0,
-                    locations: 0
-                },
-                {
-                    whiskey: 0,
-                    tams: 0,
-                    locations: 0
-                },
-            ],
-            final: {
-                special: 0,
-                coins: 0,
-                tiles: 0
-            }
-        }
-    }
+        rounds: new GlenMore.Rounds([new GlenMore.Round()])
+    },
 });
 
 GlenMore.Users = Backbone.Collection.extend({
@@ -99,6 +97,17 @@ GlenMore.FormView = Marionette.ItemView.extend({
     removeUser: function(e) {
         e.preventDefault();
         this.model.collection.trigger('user:remove', this.model);
+    },
+    template: function(serialized_model) {
+        var template_html = $('#form_template').html();
+        var context = {
+            name: serialized_model.name,
+            slug: serialized_model.slug,
+            round: _.last(serialized_model.rounds.models).get('number')
+        }
+        console.log(context)
+//         return _.template(template_html, context, {variable: 'args'});
+        return _.template(template_html, context);
     }
 });
 
@@ -128,7 +137,6 @@ GlenMore.UserForms = Marionette.CollectionView.extend({
 GlenMore.on('initialize:after', function() {
     var users = new GlenMore.Users;
     users.fetch();
-
     users.on('add', function(user) {
         this.save();
     });
@@ -140,8 +148,15 @@ GlenMore.on('initialize:after', function() {
     var tabsView = new GlenMore.UserTabs({
         collection: users
     });
+    tabsView.on('collection:rendered', function() {
+        this.$el.find('li:first').addClass('active');
+    });
+    
     var formsView = new GlenMore.UserForms({
         collection: users
+    });
+    formsView.on('collection:rendered', function() {
+        this.$el.find('div.tab-pane:first').addClass('active');
     });
 
     var addUserForm = new GlenMore.AddUserFormView();
