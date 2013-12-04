@@ -24,8 +24,11 @@
 
 
         <div class="container">
-            <div class="header">
-                <h3>Glen More Scorer</h3>
+            <div class="header row">
+                <div class="col-md-6 col-sm-12">
+                    <h3>Glen More Scorer</h3>
+                </div>
+                <div id="new_user" class="col-md-6 col-sm-12"></div>
             </div>
 
             <div class="row" id="main">
@@ -41,17 +44,12 @@
 
         </div>
 
-
-        <script type="text/template" id="add_user_tab_template">
-            <a data-toggle="tab" href="#add-user"><i class="glyphicon glyphicon-plus"></i> Add Player</a>
-        </script>
-
         <script type="text/template" id="add_user_form_template">
             <div class="tab-pane" id="user-add">
                 <form role="form" class="form-inline score-entry">
                     <div class="form-group">
                         <label for="name" class="sr-only">Name</label>
-                        <input type="text" class="form-control" id="name" name="name" placeholder="Name">
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Add user">
                     </div>
                     <button type="submit" class="btn btn-default">Save</button>
                 </form>
@@ -59,7 +57,9 @@
         </script>
 
         <script type="text/template" id="tab_template">
-            <a data-toggle="tab" href="#user-<%= slug %>"><i class="glyphicon glyphicon-user"></i> <%= name %></a>
+            <a data-toggle="tab" href="#user-<%= slug %>">
+                <i class="glyphicon glyphicon-user"></i> <%= name %>
+            </a>
         </script>
 
         <script type="text/template" id="form_template">
@@ -101,9 +101,10 @@
                         <input type="number" min="0" class="form-control" id="user-<%= slug %>-locations" name="user-<%= slug %>-locations" placeholder="Special Locations">
                     </div>
                     <input type="hidden" name="round">
-                    <button type="submit" class="btn btn-default">Save</button>
+                    <button type="submit" class="btn btn-default save-user">Save</button>
                 </fieldset>
             </form>
+            <a href="#" class="btn btn-danger remove-user">Remove <%= name %></a>
         </script>
 
 
@@ -113,10 +114,11 @@
         <script src="bower_components/sass-bootstrap/dist/js/bootstrap.js"></script>
         <script src="bower_components/underscore/underscore.js"></script>
         <script src="bower_components/backbone/backbone.js"></script>
+        <script src="bower_components/backbone.localStorage/backbone.localStorage.js"></script>
         <script src="bower_components/backbone.wreqr/lib/backbone.wreqr.js"></script>
         <script src="bower_components/backbone.babysitter/lib/backbone.babysitter.js"></script>
+        <script src="bower_components/backbone.syphon/lib/backbone.syphon.js"></script>
         <script src="bower_components/backbone.marionette/lib/backbone.marionette.js"></script>
-        <script src="bower_components/backbone.localStorage/backbone.localStorage.js"></script>
         <!-- endbower -->
         <!-- endbuild -->
 

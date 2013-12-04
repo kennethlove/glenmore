@@ -13,11 +13,13 @@ var GlenMore= new Marionette.Application();
 GlenMore.addRegions({
     mainRegion: '#main',
     tabs: '#tabs',
-    forms: '#forms'
+    forms: '#forms',
+    newuser: '#new_user'
 });
 
 GlenMore.User = Backbone.Model.extend({
     defaults: {
+        id: 0,
         name: 'William Wallace',
         slug: 'william-wallace',
         scores: {
@@ -48,7 +50,17 @@ GlenMore.User = Backbone.Model.extend({
 });
 
 GlenMore.Users = Backbone.Collection.extend({
-    model: GlenMore.User
+    localStorage: new Backbone.LocalStorage('glenmore-users'),
+    model: GlenMore.User,
+    save: function() {
+        this.each(function(model) {
+            Backbone.localSync('update', model);
+        });
+    },
+    nextId: function() {
+        if (!this.length) return 1;
+        return this.last().get('id') + 1;
+    }
 });
 
 GlenMore.TabView = Marionette.ItemView.extend({
@@ -75,20 +87,36 @@ GlenMore.FormView = Marionette.ItemView.extend({
         return 'user-' + this.model.escape('slug')
     },
     events: {
-        'click .btn': 'saveRoundForm',
-        'submit form': 'saveRoundForm'
+        'click .save-user': 'saveRoundForm',
+        'submit form': 'saveRoundForm',
+        'click .remove-user': 'removeUser'
     },
     saveRoundForm: function(e) {
         e.stopPropagation();
         e.preventDefault();
         alert(this.model.escape('name'));
+    },
+    removeUser: function(e) {
+        e.preventDefault();
+        this.model.collection.trigger('user:remove', this.model);
     }
 });
 
 GlenMore.AddUserFormView = Marionette.ItemView.extend({
     template: '#add_user_form_template',
     className: 'tab-pane',
-    id: 'add-user'
+    id: 'add-user',
+    events: {
+        'click .btn': 'newUser',
+        'submit form': 'newUser'
+    },
+    newUser: function(e) {
+        e.preventDefault();
+        var data = Backbone.Syphon.serialize(this);
+        data.slug = data.name.split(' ').join('-').toLowerCase();
+        this.trigger('form:submit', data);
+        $(e.target).parent('form').find('input').val('');
+    }
 });
 
 GlenMore.UserForms = Marionette.CollectionView.extend({
@@ -98,15 +126,16 @@ GlenMore.UserForms = Marionette.CollectionView.extend({
 });
 
 GlenMore.on('initialize:after', function() {
-    var kenneth = new GlenMore.User({
-        name: 'Kenneth Love',
-        slug: 'kenneth-love'
+    var users = new GlenMore.Users;
+    users.fetch();
+
+    users.on('add', function(user) {
+        this.save();
     });
-    var elaine = new GlenMore.User({
-        name: 'Elaine Love',
-        slug: 'elaine-love'
+    users.on('user:remove', function(user) {
+        deletedUser = this.get({'id': user.get('id')});
+        deletedUser.destroy();
     });
-    var users = new GlenMore.Users([kenneth, elaine]);
 
     var tabsView = new GlenMore.UserTabs({
         collection: users
@@ -115,26 +144,16 @@ GlenMore.on('initialize:after', function() {
         collection: users
     });
 
-    tabsView.on('collection:rendered', function(el) {
-        options = {}
-        if (el.collection.length === 0) {
-            options['className'] = (new GlenMore.AddUserTabView()).className + ' active';
-        }
-        var add_user = new GlenMore.AddUserTabView(options);
-        el.$el.append(add_user.render().$el);
-    });
+    var addUserForm = new GlenMore.AddUserFormView();
 
-    formsView.on('collection:rendered', function(el) {
-        options = {}
-        if (el.collection.length === 0) {
-            options['className'] = (new GlenMore.AddUserFormView()).className + ' active';
-        }
-        var add_user = new GlenMore.AddUserFormView(options);
-        el.$el.append(add_user.render().$el);
+    addUserForm.on('form:submit', function(data) {
+        data.id = users.nextId();
+        users.add(data);
     });
 
     GlenMore.tabs.show(tabsView);
     GlenMore.forms.show(formsView);
+    GlenMore.newuser.show(addUserForm);
 });
 
 GlenMore.start();
