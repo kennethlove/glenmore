@@ -151,6 +151,15 @@ GlenMore.UserForms = Marionette.CollectionView.extend({
     className: 'tab-content',
 });
 
+GlenMore.Record = Marionette.ItemView.extend({
+    tagName: 'tr',
+    template: '#round_template'
+});
+
+GlenMore.Records = Marionette.CollectionView.extend({
+    itemView: GlenMore.Record
+});
+
 GlenMore.on('initialize:after', function() {
     var users = new GlenMore.Users;
     users.fetch();
