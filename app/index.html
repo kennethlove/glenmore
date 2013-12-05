@@ -75,13 +75,15 @@
                         </tr>
                     </thead>
                     <tbody>
+                    <% _.each(rounds, function(round) { %>
                         <tr>
-                            <th scope="row">1</th>
-                            <td>0</td>
-                            <td>1</td>
-                            <td>2</td>
-                            <td>3</td>
+                            <th scope="row"><%= round.number %></th>
+                            <td><%= round.whiskey %></td>
+                            <td><%= round.tams %></td>
+                            <td><%= round.locations %></td>
+                            <td>N/A</td>
                         </tr>
+                    <% }) %>
                     </tbody>
                 </table>
             </div>
@@ -115,6 +117,7 @@
         <script src="bower_components/underscore/underscore.js"></script>
         <script src="bower_components/backbone/backbone.js"></script>
         <script src="bower_components/backbone.localStorage/backbone.localStorage.js"></script>
+        <script src="bower_components/backbone-relational/backbone-relational.js"></script>
         <script src="bower_components/backbone.wreqr/lib/backbone.wreqr.js"></script>
         <script src="bower_components/backbone.babysitter/lib/backbone.babysitter.js"></script>
         <script src="bower_components/backbone.syphon/lib/backbone.syphon.js"></script>

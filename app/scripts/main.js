@@ -17,13 +17,18 @@ GlenMore.addRegions({
     newuser: '#new_user'
 });
 
-GlenMore.Round = Backbone.Model.extend({
+GlenMore.Round = Backbone.RelationalModel.extend({
     defaults: {
         number: 1,
         whiskey: 0,
         tams: 0,
         locations: 0
-    }
+    },
+    relations: [{
+        type: Backbone.HasOne,
+        key: 'user',
+        relatedModel: 'GlenMore.User'
+    }]
 });
 
 GlenMore.FinalScoring = Backbone.Model.extend({
@@ -35,16 +40,27 @@ GlenMore.FinalScoring = Backbone.Model.extend({
 });
 
 GlenMore.Rounds = Backbone.Collection.extend({
+//     localStorage: new Backbone.LocalStorage('glenmore-rounds'),
     model: GlenMore.Round
 });
 
-GlenMore.User = Backbone.Model.extend({
+GlenMore.User = Backbone.RelationalModel.extend({
     defaults: {
         id: 0,
         name: 'William Wallace',
-        slug: 'william-wallace',
-        rounds: new GlenMore.Rounds([new GlenMore.Round()])
+        slug: 'william-wallace'
     },
+    relations: [{
+        type: Backbone.HasMany,
+        key: 'rounds',
+        relatedModel: 'GlenMore.Round',
+        collectionType: 'GlenMore.Rounds'
+    }],
+    initialize: function() {
+        if (!this.get('rounds') || this.get('rounds').length === 0) {
+            this.get('rounds').add(new GlenMore.Round({user: this}));
+        }
+    }
 });
 
 GlenMore.Users = Backbone.Collection.extend({
@@ -105,9 +121,9 @@ GlenMore.FormView = Marionette.ItemView.extend({
         var context = {
             name: serialized_model.name,
             slug: serialized_model.slug,
+            rounds: serialized_model.rounds,
             round: _.last(serialized_model.rounds)
         }
-//         return _.template(template_html, context, {variable: 'args'});
         return _.template(template_html, context);
     }
 });
@@ -146,10 +162,20 @@ GlenMore.on('initialize:after', function() {
         deletedUser.destroy();
     });
     users.on('round_form:submit', function(data) {
-        var user = this.get(data.model.get('id'));
-        var round = _.last(user.get('rounds'));
-        round.set(data);
-        console.log(round);
+        var user = this.get(data.model.get('id')),
+            round = user.get('rounds').last();
+        round.set({
+            whiskey: parseInt(data.whiskey, 10) || 0,
+            tams: parseInt(data.tams, 10) || 0,
+            locations: parseInt(data.locations, 10) || 0
+        });
+        if (user.get('rounds').length <= 3) {
+            user.get('rounds').add(new GlenMore.Round({
+                number: round.get('number') + 1,
+                user: user
+            }));
+        }
+        this.save();
     });
 
     var tabsView = new GlenMore.UserTabs({
