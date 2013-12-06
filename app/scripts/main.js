@@ -80,12 +80,19 @@ GlenMore.Users = Backbone.Collection.extend({
 GlenMore.TabView = Marionette.ItemView.extend({
     template: '#tab_template',
     tagName: 'li',
+    events: {
+        'click a': 'showUser'
+    },
+    showUser: function(e) {
+        e.preventDefault();
+        this.model.collection.trigger('user:show', this.model);
+    }
 });
 
 GlenMore.UserTabs = Marionette.CollectionView.extend({
     itemView: GlenMore.TabView,
     tagName: 'ul',
-    className: 'nav nav-tabs'
+    className: 'nav nav-pills'
 });
 
 GlenMore.AddUserTabView = Marionette.ItemView.extend({
@@ -95,8 +102,9 @@ GlenMore.AddUserTabView = Marionette.ItemView.extend({
 });
 
 GlenMore.FormView = Marionette.ItemView.extend({
-    template: '#form_template',
-    className: 'tab-pane',
+    template: '#score_form_template',
+    tagName: 'fieldset',
+    className: '',
     id: function() {
         return 'user-' + this.model.escape('slug')
     },
@@ -117,7 +125,7 @@ GlenMore.FormView = Marionette.ItemView.extend({
         this.model.collection.trigger('user:remove', this.model);
     },
     template: function(serialized_model) {
-        var template_html = $('#form_template').html();
+        var template_html = $('#score_form_template').html();
         var context = {
             name: serialized_model.name,
             slug: serialized_model.slug,
@@ -156,9 +164,22 @@ GlenMore.Record = Marionette.ItemView.extend({
     template: '#round_template'
 });
 
-GlenMore.Records = Marionette.CollectionView.extend({
-    itemView: GlenMore.Record
+GlenMore.Records = Marionette.CompositeView.extend({
+    itemView: GlenMore.Record,
+    template: '#records_template',
+    itemViewContainer: 'tbody',
+    tagName: 'table',
+    className: 'scores table table-condensed table-hover'
 });
+
+GlenMore.TotalUserView = Marionette.Layout.extend({
+    template: '#user_template',
+    regions: {
+        rounds: '.table-responsive',
+        form: '.score-entry'
+    }
+});
+
 
 GlenMore.on('initialize:after', function() {
     var users = new GlenMore.Users;
@@ -186,30 +207,34 @@ GlenMore.on('initialize:after', function() {
         }
         this.save();
     });
+    users.on('user:show', function(user) {
+        var totalUserView = new GlenMore.TotalUserView({});
+        var userFormView = new GlenMore.FormView({
+            model: user
+        });
+        var scoreView = new GlenMore.Records({
+            collection: user.get('rounds')
+        });
+        GlenMore.forms.show(totalUserView);
+        totalUserView.rounds.show(scoreView);
+        totalUserView.form.show(userFormView);
+    });
 
     var tabsView = new GlenMore.UserTabs({
         collection: users
     });
     tabsView.on('collection:rendered', function() {
         this.$el.find('li:first').addClass('active');
-    });
-    
-    var formsView = new GlenMore.UserForms({
-        collection: users
-    });
-    formsView.on('collection:rendered', function() {
-        this.$el.find('div.tab-pane:first').addClass('active');
+        users.trigger('user:show', users.first());
     });
 
     var addUserForm = new GlenMore.AddUserFormView();
-
     addUserForm.on('form:submit', function(data) {
         data.id = users.nextId();
         users.add(data);
     });
 
     GlenMore.tabs.show(tabsView);
-    GlenMore.forms.show(formsView);
     GlenMore.newuser.show(addUserForm);
 });
 

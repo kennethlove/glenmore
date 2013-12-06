@@ -62,50 +62,48 @@
             </a>
         </script>
 
-        <script type="text/template" id="form_template">
-            <div class="table-responsive">
-                <table class="scores table table-condensed table-hover">
-                    <thead>
-                        <tr>
-                            <th scope="column">Round</th>
-                            <th scope="column">Whiskey Barrels</th>
-                            <th scope="column">Tams/Chieftans</th>
-                            <th scope="column">Special Locations</th>
-                            <th scope="column">Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <% _.each(rounds, function(round) { %>
-                        <tr>
-                            <th scope="row"><%= round.number %></th>
-                            <td><%= round.whiskey %></td>
-                            <td><%= round.tams %></td>
-                            <td><%= round.locations %></td>
-                            <td>N/A</td>
-                        </tr>
-                    <% }) %>
-                    </tbody>
-                </table>
+        <script type="text/template" id="user_template">
+            <div class="table-responsive"></div>
+            <form role="form" class="form-inline score-entry"></form>
+        </script>
+
+        <script type="text/template" id="records_template">
+            <thead>
+                <tr>
+                    <th scope="column">Round</th>
+                    <th scope="column">Whiskey Barrels</th>
+                    <th scope="column">Tams/Chieftans</th>
+                    <th scope="column">Special Locations</th>
+                    <th scope="column">Score</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </script>
+
+        <script type="text/template" id="round_template">
+            <th scope="row"><%= number %></th>
+            <td><%= whiskey %></td>
+            <td><%= tams %></td>
+            <td><%= locations %></td>
+            <td>N/A</td>
+        </script>
+
+        <script type="text/template" id="score_form_template">
+            <legend>Round: <%= round.number %></legend>
+            <div class="form-group">
+                <label for="user-<%= slug %>-whiskey" class="sr-only">Num. Whiskey Barrels</label>
+                <input type="number" min="0" class="form-control" id="user-<%= slug %>-whiskey" name="whiskey" placeholder="Whiskey Barrels">
             </div>
-            <form role="form" class="form-inline score-entry">
-                <fieldset>
-                    <legend>Round: <%= round.number %></legend>
-                    <div class="form-group">
-                        <label for="user-<%= slug %>-whiskey" class="sr-only">Num. Whiskey Barrels</label>
-                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-whiskey" name="whiskey" placeholder="Whiskey Barrels">
-                    </div>
-                    <div class="form-group">
-                        <label for="user-<%= slug %>-tams" class="sr-only">Num. Tams/Chieftans</label>
-                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-tams" name="tams" placeholder="Tams/Chieftans">
-                    </div>
-                    <div class="form-group">
-                        <label for="user-<%= slug %>-locations" class="sr-only">Num. Special Locations</label>
-                        <input type="number" min="0" class="form-control" id="user-<%= slug %>-locations" name="locations" placeholder="Special Locations">
-                    </div>
-                    <input type="hidden" name="round" value="<%= round.number %>">
-                    <button type="submit" class="btn btn-default save-user">Save</button>
-                </fieldset>
-            </form>
+            <div class="form-group">
+                <label for="user-<%= slug %>-tams" class="sr-only">Num. Tams/Chieftans</label>
+                <input type="number" min="0" class="form-control" id="user-<%= slug %>-tams" name="tams" placeholder="Tams/Chieftans">
+            </div>
+            <div class="form-group">
+                <label for="user-<%= slug %>-locations" class="sr-only">Num. Special Locations</label>
+                <input type="number" min="0" class="form-control" id="user-<%= slug %>-locations" name="locations" placeholder="Special Locations">
+            </div>
+            <input type="hidden" name="round" value="<%= round.number %>">
+            <button type="submit" class="btn btn-default save-user">Save</button>
             <a href="#" class="btn btn-danger remove-user">Remove <%= name %></a>
         </script>
 
