@@ -22,7 +22,8 @@ GlenMore.Round = Backbone.RelationalModel.extend({
         number: 1,
         whiskey: 0,
         tams: 0,
-        locations: 0
+        locations: 0,
+        score: 0
     },
     relations: [{
         type: Backbone.HasOne,
@@ -65,12 +66,7 @@ GlenMore.User = Backbone.RelationalModel.extend({
         type: Backbone.HasOne,
         key: 'final',
         relatedModel: 'GlenMore.FinalScoring'
-    }],
-    initialize: function() {
-        if (!this.get('rounds') || this.get('rounds').length === 0) {
-            this.get('rounds').add(new GlenMore.Round({user: this}));
-        }
-    }
+    }]
 });
 
 GlenMore.Users = Backbone.Collection.extend({
@@ -109,9 +105,6 @@ GlenMore.FormView = Marionette.ItemView.extend({
     template: '#round_form_template',
     className: 'row',
     tagName: 'fieldset',
-    id: function() {
-        return 'user-' + this.model.escape('slug')
-    },
     events: {
         'click .remove-user': 'removeUser'
     },
@@ -125,7 +118,7 @@ GlenMore.FormView = Marionette.ItemView.extend({
             name: serialized_model.name,
             slug: serialized_model.slug,
             rounds: serialized_model.rounds,
-            round: _.last(serialized_model.rounds)
+            round: {number: serialized_model.rounds.length + 1}
         }
         return _.template(template_html, context);
     }
@@ -182,6 +175,15 @@ GlenMore.AddUserFormView = Marionette.ItemView.extend({
         })).sort(function(a, b) { return b < a })[0];
         
         // for each round, get lowest count in each category
+        var final_rounds = new Backbone.Collection();
+        _.each(users.models, function(user) {
+            console.log(user)
+            _.each(user.get('rounds'), function(round) {
+                console.log(round);
+                final_rounds.push(round);
+            });
+        });
+        console.log(final_rounds);
         
         // generate score per round per player and set on model
         
@@ -285,23 +287,18 @@ GlenMore.on('initialize:after', function() {
         this.save();
     });
     users.on('user:remove', function(user) {
-        deletedUser = this.get({'id': user.get('id')});
+        deletedUser = this.get({id: user.get('id')});
         deletedUser.destroy();
     });
     users.on('round:save', function(data) {
-        var user = this.get(data.model.get('id')),
-            round = user.get('rounds').last();
-        round.set({
+        var user = this.get(data.model.get('id'));
+        user.get('rounds').add({
+            user: user,
             whiskey: parseInt(data.whiskey, 10) || 0,
             tams: parseInt(data.tams, 10) || 0,
-            locations: parseInt(data.locations, 10) || 0
+            locations: parseInt(data.locations, 10) || 0,
+            number: user.get('rounds').length + 1
         });
-        if (user.get('rounds').length < 3) {
-            user.get('rounds').add(new GlenMore.Round({
-                number: round.get('number') + 1,
-                user: user
-            }));
-        }
         this.save();
         this.trigger('user:show', user);
     });
@@ -324,6 +321,8 @@ GlenMore.on('initialize:after', function() {
         var totalUserView = new GlenMore.TotalUserView({
             model: user
         });
+        GlenMore.forms.show(totalUserView);
+        
         var userFormView = undefined;
         if (user.get('final') === null) {
             if (user.get('rounds').length === 3) {
@@ -336,17 +335,20 @@ GlenMore.on('initialize:after', function() {
                 });
             }
         }
+        if (userFormView !== undefined) {
+            totalUserView.form.show(userFormView);
+        }
+        
         var scoreView = new GlenMore.Records({
             collection: user.get('rounds')
         });
-        var finalView = new GlenMore.FinalRound({
-            collection: new Backbone.Collection([user.get('final')])
-        });
-        GlenMore.forms.show(totalUserView);
         totalUserView.rounds.show(scoreView);
-        totalUserView.final.show(finalView);
-        if (userFormView !== undefined) {
-            totalUserView.form.show(userFormView);
+        
+        if (user.has('final')) {
+            var finalView = new GlenMore.FinalRound({
+                collection: new Backbone.Collection([user.get('final')])
+            });
+            totalUserView.final.show(finalView);
         }
     });
 
