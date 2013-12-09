@@ -159,7 +159,7 @@ GlenMore.AddUserFormView = Marionette.ItemView.extend({
         var dummy_user = new GlenMore.User();
         
         // reset all final scores to 0
-        _.each(users.model, function(user) {
+        _.each(users.models, function(user) {
             if (user.has('final')) {
                 user.get('final').set('total', 0);
             }
@@ -185,9 +185,9 @@ GlenMore.AddUserFormView = Marionette.ItemView.extend({
             });
         });
         
-        var rounds = [round_one, round_two, round_three];
+        var rounds = new Backbone.Collection([round_one, round_two, round_three]);
         for (var i = 1; i < 4; i++) {
-            var this_round = rounds[i-1];
+            var this_round = rounds.at(i-1);
             _.each(final_rounds.where({number: i}), function(round) {
                 if (this_round !== undefined) {
                     if (!this_round.has('whiskey') || round.get('whiskey') < this_round.get('whiskey')) {
@@ -203,9 +203,13 @@ GlenMore.AddUserFormView = Marionette.ItemView.extend({
                 }
             });
         }
-        console.log(rounds);
         
         // generate score per round per player and set on model
+        _.map(users.models, function(user) {
+            _.map(user.get('rounds').models, function(round) {
+                console.log(round);
+            });
+        });
         
         // add in victory points, coins, and tile bonuses
         _.each(users.models, function(user) {
