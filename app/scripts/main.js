@@ -175,15 +175,35 @@ GlenMore.AddUserFormView = Marionette.ItemView.extend({
         })).sort(function(a, b) { return b < a })[0];
         
         // for each round, get lowest count in each category
-        var final_rounds = new Backbone.Collection();
+        var final_rounds = new Backbone.Collection(),
+            round_one = new GlenMore.Round({whiskey: null, locations: null, tams: null}),
+            round_two = new GlenMore.Round({whiskey: null, locations: null, tams: null}),
+            round_three = new GlenMore.Round({whiskey: null, locations: null, tams: null});
         _.each(users.models, function(user) {
-            console.log(user)
-            _.each(user.get('rounds'), function(round) {
-                console.log(round);
+            _.each(user.get('rounds').models, function(round) {
                 final_rounds.push(round);
             });
         });
-        console.log(final_rounds);
+        
+        var rounds = [round_one, round_two, round_three];
+        for (var i = 1; i < 4; i++) {
+            var this_round = rounds[i-1];
+            _.each(final_rounds.where({number: i}), function(round) {
+                if (this_round !== undefined) {
+                    if (!this_round.has('whiskey') || round.get('whiskey') < this_round.get('whiskey')) {
+                        this_round.set('whiskey', round.get('whiskey'))
+                    }
+                    if (!this_round.has('tams') || round.get('tams') < this_round.get('tams')) {
+                        this_round.set('tams', round.get('tams'))
+                    }
+                    if (!this_round.has('locations') || round.get('locations') < this_round.get('locations')) {
+                        this_round.set('locations', round.get('locations'))
+                    }
+                    this_round.set('number', round.get('number'))
+                }
+            });
+        }
+        console.log(rounds);
         
         // generate score per round per player and set on model
         
@@ -218,7 +238,7 @@ GlenMore.AddUserFormView = Marionette.ItemView.extend({
         
         // set final score per player
         _.each(users.models, function(user) {
-            console.log(user.get('final'));
+            console.log('final', user.get('final'));
         });
     }
 });
