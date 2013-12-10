@@ -8,6 +8,46 @@
  *
 */
 
+var get_difference_score = function(difference) {
+    if (difference >= 5) { return 8 }
+    else if (difference <= 0) { return 0 }
+    else if (difference < 4) { return difference }
+    else { return 5 }
+}
+
+var round_total = function(users, number) {
+    var rounds = new Backbone.Collection(),
+        base_round = new GlenMore.Round({
+            whiskey: null,
+            tams: null,
+            locations: null,
+            number: number
+        }),
+        cats = ['whiskey', 'tams', 'locations'];
+    
+    _.each(users.models, function(user) {
+        rounds.push(user.get('rounds').where({number: number}));
+    });
+    
+    // Set the base round amounts
+    _.map(rounds.models, function(round) {
+        cats.forEach(function(cat) {
+            if (!base_round.has(cat) || round.get(cat) < base_round.get(cat)) {
+                base_round.set(cat, round.get(cat));
+            }
+        });
+    });
+    
+    // Set each round's total
+    _.map(rounds.models, function(round) {
+        var round_score = 0;
+        cats.forEach(function(cat) {
+            round_score += get_difference_score(round.get(cat) - base_round.get(cat));
+        });
+        round.set('score', round_score);
+    });
+}
+
 var GlenMore = new Marionette.Application();
 
 GlenMore.addRegions({
@@ -174,43 +214,6 @@ GlenMore.AddUserFormView = Marionette.ItemView.extend({
             }
         })).sort(function(a, b) { return b < a })[0];
         
-        // for each round, get lowest count in each category
-        var final_rounds = new Backbone.Collection(),
-            round_one = new GlenMore.Round({whiskey: null, locations: null, tams: null}),
-            round_two = new GlenMore.Round({whiskey: null, locations: null, tams: null}),
-            round_three = new GlenMore.Round({whiskey: null, locations: null, tams: null});
-        _.each(users.models, function(user) {
-            _.each(user.get('rounds').models, function(round) {
-                final_rounds.push(round);
-            });
-        });
-        
-        var rounds = new Backbone.Collection([round_one, round_two, round_three]);
-        for (var i = 1; i < 4; i++) {
-            var this_round = rounds.at(i-1);
-            _.each(final_rounds.where({number: i}), function(round) {
-                if (this_round !== undefined) {
-                    if (!this_round.has('whiskey') || round.get('whiskey') < this_round.get('whiskey')) {
-                        this_round.set('whiskey', round.get('whiskey'))
-                    }
-                    if (!this_round.has('tams') || round.get('tams') < this_round.get('tams')) {
-                        this_round.set('tams', round.get('tams'))
-                    }
-                    if (!this_round.has('locations') || round.get('locations') < this_round.get('locations')) {
-                        this_round.set('locations', round.get('locations'))
-                    }
-                    this_round.set('number', round.get('number'))
-                }
-            });
-        }
-        
-        // generate score per round per player and set on model
-        _.map(users.models, function(user) {
-            _.map(user.get('rounds').models, function(round) {
-                console.log(round);
-            });
-        });
-        
         // add in victory points, coins, and tile bonuses
         _.each(users.models, function(user) {
             if (user.has('final')) {
@@ -242,7 +245,9 @@ GlenMore.AddUserFormView = Marionette.ItemView.extend({
         
         // set final score per player
         _.each(users.models, function(user) {
-            console.log('final', user.get('final'));
+            var round_total = 0;
+            _.map(user.get('rounds').pluck('score'), function(r) { round_total += r});
+            user.get('final').set('total', user.get('final').get('total') + round_total);
         });
     }
 });
@@ -324,6 +329,18 @@ GlenMore.on('initialize:after', function() {
             number: user.get('rounds').length + 1
         });
         this.save();
+        
+        var everyone = _.filter(users.models, function(other_user) {
+            if (other_user.has('rounds')) {
+                return other_user.get('rounds').length < user.get('rounds').length
+            }
+            return true;
+        });;
+        if (everyone.length === 0 && users.length > 1) {
+            round_total(users, user.get('rounds').length);
+            this.save();
+        }
+        
         this.trigger('user:show', user);
     });
     users.on('final:save', function(data) {

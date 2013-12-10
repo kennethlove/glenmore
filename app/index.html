@@ -91,7 +91,7 @@
             <td><%= whiskey %></td>
             <td><%= tams %></td>
             <td><%= locations %></td>
-            <td>N/A</td>
+            <td><%= score %></td>
         </script>
 
         <script type="text/template" id="final_template">
@@ -101,6 +101,7 @@
                     <th scope="column">Coins</th>
                     <th scope="column">Total Tiles</th>
                     <th scope="column">Victory Points</th>
+                    <th scope="column">Grand Total</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -111,6 +112,7 @@
             <td><%= coins %></td>
             <td><%= tiles %></td>
             <td><%= victory %></td>
+            <td><%= total %></td>
         </script>
 
         <script type="text/template" id="round_form_template">
