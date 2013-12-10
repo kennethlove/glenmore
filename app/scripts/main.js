@@ -149,7 +149,7 @@ GlenMore.TabView = Marionette.ItemView.extend({
 GlenMore.UserTabs = Marionette.CollectionView.extend({
     itemView: GlenMore.TabView,
     tagName: 'ul',
-    className: 'nav nav-pills'
+    className: 'nav nav-pills nav-justified'
 });
 
 GlenMore.FormView = Marionette.ItemView.extend({
