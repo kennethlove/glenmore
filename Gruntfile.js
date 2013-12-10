@@ -279,6 +279,15 @@ module.exports = function (grunt) {
             ],
             uglify: true
         },
+        browserify: {
+            all: {
+                src: '<%= yeoman.app %>/scripts/main.js',
+                dest: '<%= yeoman.app %>/scripts/bundle.js',
+                options: {
+                    transforms: ['debowerify', 'decomponentify', 'deamdify', 'deglobalify', 'es6ify']
+                }
+            }
+        },
         concurrent: {
             server: [
                 'compass',
@@ -335,7 +344,8 @@ module.exports = function (grunt) {
         'modernizr',
         'copy:dist',
         'rev',
-        'usemin'
+        'usemin',
+        'browserify'
     ]);
 
     grunt.registerTask('default', [

@@ -25,12 +25,12 @@ var round_total = function(users, number) {
         }),
         cats = ['whiskey', 'tams', 'locations'];
     
-    _.each(users.models, function(user) {
+    users.each(function(user) {
         rounds.push(user.get('rounds').where({number: number}));
     });
     
     // Set the base round amounts
-    _.map(rounds.models, function(round) {
+    rounds.map(function(round) {
         cats.forEach(function(cat) {
             if (!base_round.has(cat) || round.get(cat) < base_round.get(cat)) {
                 base_round.set(cat, round.get(cat));
@@ -39,7 +39,7 @@ var round_total = function(users, number) {
     });
     
     // Set each round's total
-    _.map(rounds.models, function(round) {
+    rounds.map(function(round) {
         var round_score = 0;
         cats.forEach(function(cat) {
             round_score += get_difference_score(round.get(cat) - base_round.get(cat));
@@ -120,6 +120,17 @@ GlenMore.Users = Backbone.Collection.extend({
     nextId: function() {
         if (!this.length) return 1;
         return this.last().get('id') + 1;
+    },
+    resetRoundTotals: function() {
+        this.each(function(user) {
+            user.get('rounds').each(function(round) {
+                round.set('score', 0);
+            });
+            if (user.has('final')) {
+                user.get('final').set('total', 0);
+            };
+        });
+        this.save();
     }
 });
 
@@ -199,36 +210,23 @@ GlenMore.AddUserFormView = Marionette.ItemView.extend({
         var dummy_user = new GlenMore.User();
         
         // reset all final scores to 0
-        _.each(users.models, function(user) {
+        users.each(function(user) {
             if (user.has('final')) {
                 user.get('final').set('total', 0);
             }
         });
         
         // get lowest tile count from all users
-        var lowest_tile = (_.map(users.models, function(user) {
-            try {
+        var lowest_tile = (users.map( function(user) {
+            if (user.has('final')) {
                 return user.get('final').get('tiles');
-            } catch (e) {
-                return 1;
+            } else {
+                return 1
             }
         })).sort(function(a, b) { return b < a })[0];
         
-        // add in victory points, coins, and tile bonuses
-        _.each(users.models, function(user) {
-            if (user.has('final')) {
-                var final = user.get('final'),
-                    vp = final.get('victory'),
-                    coins = final.get('coins'),
-                    special = final.get('special'),
-                    total = final.get('total');
-                    
-                final.set('total', total + vp + coins + special);
-            }
-        });
-        
         // subtract tile overages
-        _.each(users.models, function(user) {
+        users.each(function(user) {
             var tiles = 1,
                 penalty = 0;
             if (user.has('final')) {
@@ -243,12 +241,29 @@ GlenMore.AddUserFormView = Marionette.ItemView.extend({
             }
         });
         
-        // set final score per player
-        _.each(users.models, function(user) {
-            var round_total = 0;
-            _.map(user.get('rounds').pluck('score'), function(r) { round_total += r});
-            user.get('final').set('total', user.get('final').get('total') + round_total);
-        });
+        if (users.length > 1) {
+
+            // add in victory points, coins, and tile bonuses
+            users.each(function(user) {
+                if (user.has('final')) {
+                    var final = user.get('final'),
+                        vp = final.get('victory'),
+                        coins = final.get('coins'),
+                        special = final.get('special'),
+                        total = final.get('total');
+                        
+                    final.set('total', total + vp + coins + special);
+                }
+            });
+            
+            // set final score per player
+            users.each(function(user) {
+                var round_total = 0;
+                _.map(user.get('rounds').pluck('score'), function(r) { round_total += r});
+                user.get('final').set('total', user.get('final').get('total') + round_total);
+            });
+            users.save();
+        }
     }
 });
 
@@ -293,7 +308,8 @@ GlenMore.TotalUserView = Marionette.Layout.extend({
         form: '.score-entry'
     },
     events: {
-        'submit form': 'roundFormSave'
+        'submit form': 'roundFormSave',
+        'click .remove-user': 'removeUser'
     },
     roundFormSave: function(e) {
         e.preventDefault();
@@ -305,6 +321,10 @@ GlenMore.TotalUserView = Marionette.Layout.extend({
             this.model.trigger('final:save', data);
         }
     },
+    removeUser: function(e) {
+        e.preventDefault();
+        this.model.trigger('user:remove', this.model);
+    }
 });
 
 
@@ -318,6 +338,15 @@ GlenMore.on('initialize:after', function() {
     users.on('user:remove', function(user) {
         deletedUser = this.get({id: user.get('id')});
         deletedUser.destroy();
+        if (users.length !== 0 && users.length > 1) {
+            var num_rounds = users.first().get('rounds').length;
+            for (var i=1; i<=num_rounds; i++) {
+                round_total(users, i);
+            }
+        } else {
+            users.resetRoundTotals();
+        }
+        this.trigger('user:show', users.first());
     });
     users.on('round:save', function(data) {
         var user = this.get(data.model.get('id'));
