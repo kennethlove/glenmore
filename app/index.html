@@ -46,7 +46,7 @@
 
         <script type="text/template" id="add_user_form_template">
             <div id="user-add">
-                <button id="calculate" class="col-md-3 col-sm-12 btn btn-default">Calculate</button>
+                <button id="calculate" class="col-md-3 col-sm-12 btn btn-default"><i class="glyphicon glyphicon-stats"></i> Calculate</button>
                 <form role="form" class="form-inline col-md-9">
                     <div class="form-group">
                         <label for="name" class="sr-only">Name</label>
@@ -68,8 +68,9 @@
             <div class="table-responsive" id="final"></div>
             <div id="total"></div>
             <form role="form" class="form-inline score-entry"></form>
-            <div class="row remove-user">
-                <a href="#" class="btn btn-danger remove-user">Remove <%= name %></a>
+            <div class="row remove-user-row">
+                <button class="btn btn-warning remove-user col-sm-3"><i class="glyphicon glyphicon-remove"></i> Remove <%= name %></button>
+                <button class="btn btn-danger new-game col-sm-3 col-md-offset-6"><i class="glyphicon glyphicon-refresh"></i> New Game</button>
             </div>
         </script>
 

@@ -157,11 +157,15 @@ GlenMore.FormView = Marionette.ItemView.extend({
     className: 'row',
     tagName: 'fieldset',
     events: {
-        'click .remove-user': 'removeUser'
+        'click .remove-user': 'removeUser',
+        'click .new-game': 'newGame'
     },
     removeUser: function(e) {
         e.preventDefault();
         this.model.collection.trigger('user:remove', this.model);
+    },
+    newGame: function(e) {
+        this.model.trigger('game:new');
     },
     template: function(serialized_model) {
         var template_html = $('#round_form_template').html();
@@ -309,7 +313,8 @@ GlenMore.TotalUserView = Marionette.Layout.extend({
     },
     events: {
         'submit form': 'roundFormSave',
-        'click .remove-user': 'removeUser'
+        'click .remove-user': 'removeUser',
+        'click .new-game': 'newGame'
     },
     roundFormSave: function(e) {
         e.preventDefault();
@@ -324,6 +329,10 @@ GlenMore.TotalUserView = Marionette.Layout.extend({
     removeUser: function(e) {
         e.preventDefault();
         this.model.trigger('user:remove', this.model);
+    },
+    newGame: function(e) {
+        e.preventDefault();
+        this.model.trigger('game:new');
     }
 });
 
@@ -419,6 +428,16 @@ GlenMore.on('initialize:after', function() {
                 collection: new Backbone.Collection([user.get('final')])
             });
             totalUserView.final.show(finalView);
+        }
+    });
+    users.on('game:new', function() {
+        var confirmed = confirm('This will remove all scores and users. Are you sure?');
+        if (confirmed) {
+            this.each(function(user) {
+                user.destroy();
+            });
+            this.save();
+            window.location.reload();
         }
     });
 
