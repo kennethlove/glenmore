@@ -57,6 +57,31 @@ GlenMore.addRegions({
     newuser: '#new_user'
 });
 
+GlenMore.Game = Backbone.RelationalModel.extend({
+    defaults: {
+        id: 0
+    },
+    relations: [{
+        type: Backbone.HasMany,
+        key: 'players',
+        relatedModel: 'GlenMore.User'
+    }]
+});
+
+GlenMore.Games = Backbone.Collection.extend({
+    localStorage: new Backbone.LocalStorage('glenmore-games'),
+    model: GlenMore.Game,
+    nextId: function() {
+        if (!this.length) return 1;
+        return this.last().get('id') + 1;
+    },
+    save: function() {
+        this.each(function(model) {
+            Backbone.localSync('update', model);
+        });
+    },
+});
+
 GlenMore.Round = Backbone.RelationalModel.extend({
     defaults: {
         number: 1,
@@ -93,7 +118,6 @@ GlenMore.Rounds = Backbone.Collection.extend({
 
 GlenMore.User = Backbone.RelationalModel.extend({
     defaults: {
-        id: 0,
         name: 'William Wallace',
         slug: 'william-wallace'
     },
@@ -106,21 +130,16 @@ GlenMore.User = Backbone.RelationalModel.extend({
         type: Backbone.HasOne,
         key: 'final',
         relatedModel: 'GlenMore.FinalScoring'
+    }, {
+        type: Backbone.HasMany,
+        key: 'games',
+        relatedModel: 'GlenMore.Game',
+        collectionType: 'GlenMore.Games'
     }]
 });
 
 GlenMore.Users = Backbone.Collection.extend({
-    localStorage: new Backbone.LocalStorage('glenmore-users'),
     model: GlenMore.User,
-    save: function() {
-        this.each(function(model) {
-            Backbone.localSync('update', model);
-        });
-    },
-    nextId: function() {
-        if (!this.length) return 1;
-        return this.last().get('id') + 1;
-    },
     resetRoundTotals: function() {
         this.each(function(user) {
             user.get('rounds').each(function(round) {
@@ -165,7 +184,7 @@ GlenMore.FormView = Marionette.ItemView.extend({
         this.model.collection.trigger('user:remove', this.model);
     },
     newGame: function(e) {
-        this.model.trigger('game:new');
+        this.model.trigger('games:new');
     },
     template: function(serialized_model) {
         var template_html = $('#round_form_template').html();
@@ -338,12 +357,30 @@ GlenMore.TotalUserView = Marionette.Layout.extend({
 
 
 GlenMore.on('initialize:after', function() {
+    var current_game;
+    
+    GlenMore.games = new GlenMore.Games;
+    var games = GlenMore.games;
+    games.fetch();
+
+    if (!games.length || games.length === 0) {
+        games.push(new GlenMore.Game());
+        current_game = games.last();
+    }
+
     GlenMore.game_users = new GlenMore.Users;
     var users = GlenMore.game_users;
-    users.fetch();
-    users.on('add', function(user) {
-        this.save();
+
+    games.on('add', function(game) {
+        game.set('id', games.nextId());
+        this.save(); 
     });
+    
+    users.on('add', function(user) {
+        user.get('games').push(current_game);
+        games.save();
+    });
+    
     users.on('user:remove', function(user) {
         deletedUser = this.get({id: user.get('id')});
         deletedUser.destroy();
@@ -357,6 +394,7 @@ GlenMore.on('initialize:after', function() {
         }
         this.trigger('user:show', users.first());
     });
+    
     users.on('round:save', function(data) {
         var user = this.get(data.model.get('id'));
         user.get('rounds').add({
@@ -430,6 +468,7 @@ GlenMore.on('initialize:after', function() {
             totalUserView.final.show(finalView);
         }
     });
+
     users.on('game:new', function() {
         var confirmed = confirm('This will remove all scores and users. Are you sure?');
         if (confirmed) {
@@ -453,8 +492,8 @@ GlenMore.on('initialize:after', function() {
 
     var addUserForm = new GlenMore.AddUserFormView();
     addUserForm.on('form:submit', function(data) {
-        data.id = users.nextId();
         users.add(data);
+        console.log(users);
     });
 
     GlenMore.tabs.show(tabsView);
